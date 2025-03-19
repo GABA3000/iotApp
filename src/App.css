@@ -75,7 +75,6 @@ body {
   height: 400px;
 }
 
-/* Estilos para estados de carga y error */
 .loading-container,
 .error-container {
   display: flex;
@@ -94,7 +93,6 @@ body {
   color: #ff6b6b;
 }
 
-/* Responsive adjustments */
 @media (max-width: 1200px) {
   .content-wrapper {
     flex-direction: column;

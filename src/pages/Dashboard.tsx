@@ -9,6 +9,25 @@ import "../App.css"
 import Footer from "../components/Footer/footer"
 import Sidebar from "../components/Sidebar/sidebar"
 
+interface ParcelaSensor {
+  humedad: number
+  temperatura: number
+  [key: string]: any
+}
+
+interface Parcela {
+  id: number
+  nombre: string
+  ubicacion: string
+  responsable: string
+  tipo_cultivo: string
+  ultimo_riego: string
+  sensor: ParcelaSensor
+  latitud?: number
+  longitud?: number
+  [key: string]: any
+}
+
 export default function Dashboard() {
   const [weatherData, setWeatherData] = useState({
     temperature: "Cargando...",
@@ -27,15 +46,21 @@ export default function Dashboard() {
         setLoading(true)
         setError(null)
         const data = await getIotData()
+
+        if (!data) {
+          setError("No se pudieron obtener datos de la API")
+          setLoading(false)
+          return
+        }
+
         console.log("📡 Datos recibidos de la API:", data)
 
-        if (!data || !data.sensores) {
+        if (!data.sensores) {
           console.error("⚠️ Error: La API no devolvió la estructura esperada.")
           setError("La API no devolvió la estructura esperada")
           return
         }
 
-        // Actualizar datos del clima
         setWeatherData({
           temperature: data.sensores.temperatura ?? "No disponible",
           humidity: data.sensores.humedad ?? "No disponible",
@@ -43,11 +68,31 @@ export default function Dashboard() {
           sunIntensity: data.sensores.sol ?? "No disponible",
         })
 
-        // Extraer ubicaciones y validar datos
+        // Procesar las parcelas para el mapa
         const parsedLocations = (data.parcelas || [])
-          .map((parcela: any) => {
-            const lat = Number.parseFloat(parcela.latitud)
-            const lng = Number.parseFloat(parcela.longitud)
+          .map((parcela: Parcela) => {
+            // Intentar obtener coordenadas
+            let lat, lng
+
+            // Si la API proporciona latitud/longitud directamente
+            if (parcela.latitud !== undefined && parcela.longitud !== undefined) {
+              lat = Number.parseFloat(String(parcela.latitud))
+              lng = Number.parseFloat(String(parcela.longitud))
+            } else {
+              // Coordenadas de ejemplo basadas en el ID de la parcela para demostración
+              // En un caso real, estas coordenadas deberían venir de la API
+              const demoCoordinates: Record<number, [number, number]> = {
+                1: [25.6866, -100.3161], // Parcela 1
+                2: [25.6896, -100.3131], // Parcela 2
+                3: [25.6836, -100.3101], // Parcela 3
+                4: [25.6806, -100.3071], // Parcela 4
+                5: [25.6876, -100.3041], // Parcela 5
+              }
+
+              const defaultCoords = demoCoordinates[parcela.id] || [25.6866, -100.3161]
+              lat = defaultCoords[0]
+              lng = defaultCoords[1]
+            }
 
             if (isNaN(lat) || isNaN(lng)) {
               console.warn("⚠️ Ubicación inválida detectada:", parcela)
@@ -59,9 +104,10 @@ export default function Dashboard() {
               name: parcela.nombre,
               lat,
               lng,
+              parcelaData: parcela, // Incluir todos los datos de la parcela
             }
           })
-          .filter(Boolean) // Eliminar valores nulos
+          .filter(Boolean)
 
         console.log("📌 Ubicaciones extraídas:", parsedLocations)
         setLocations(parsedLocations)
@@ -75,10 +121,8 @@ export default function Dashboard() {
 
     fetchData()
 
-    // Configurar un intervalo para actualizar los datos cada 5 minutos
     const intervalId = setInterval(fetchData, 5 * 60 * 1000)
 
-    // Limpiar el intervalo cuando el componente se desmonte
     return () => clearInterval(intervalId)
   }, [])
 

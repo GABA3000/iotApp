@@ -26,26 +26,65 @@ const WeatherCard: React.FC<WeatherCardProps> = ({ type, value, unit = "" }) => 
   const getIcon = () => {
     switch (type) {
       case "temperature":
-        return null 
+        return null
       case "humidity":
-        return null 
+        return null
       case "rain":
-        return <div className="weather-icon rain-icon"></div>
+        return <div className="weather-icon"></div>
       case "sunIntensity":
-        return <div className="weather-icon sun-icon"></div>
+        return <div className="weather-icon"></div>
       default:
         return null
     }
   }
 
-  const renderValue = () => {
-    if (type === "rain" || type === "sunIntensity") {
-      return getIcon()
+  const getIntensityClass = () => {
+    if (typeof value !== "number" && typeof value !== "string") {
+      return "low"
     }
+
+    const numValue = typeof value === "string" ? Number.parseFloat(value) : value
+
+    if (isNaN(numValue)) {
+      return "low"
+    }
+
+    if (type === "rain") {
+      if (numValue <= 0) return "none"
+      if (numValue < 5) return "low"
+      if (numValue < 15) return "medium"
+      return "high"
+    }
+
+    if (type === "sunIntensity") {
+      if (numValue < 30) return "low"
+      if (numValue < 70) return "medium"
+      return "high"
+    }
+
+    return ""
+  }
+
+  const renderValue = () => {
+    // Para temperatura y humedad, mostrar solo el valor numérico
+    if (type === "temperature" || type === "humidity") {
+      return (
+        <div className="weather-value">
+          {value}
+          <span className="weather-unit">{unit}</span>
+        </div>
+      )
+    }
+
+    const intensityClass = getIntensityClass()
+
     return (
-      <div className="weather-value">
-        {value}
-        <span className="weather-unit">{unit}</span>
+      <div className="weather-content-with-icon">
+        <div className={`weather-icon ${intensityClass}`}>{getIcon()}</div>
+        <div className="weather-value">
+          {value}
+          <span className="weather-unit">{unit}</span>
+        </div>
       </div>
     )
   }

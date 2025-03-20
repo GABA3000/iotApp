@@ -64,39 +64,17 @@ export default function Dashboard() {
         setWeatherData({
           temperature: data.sensores.temperatura ?? "No disponible",
           humidity: data.sensores.humedad ?? "No disponible",
-          rain: data.sensores.lluvia !== undefined ? (data.sensores.lluvia > 0 ? "Sí" : "No") : "No disponible",
+          rain: data.sensores.lluvia ?? "No disponible",
           sunIntensity: data.sensores.sol ?? "No disponible",
         })
 
-        // Procesar las parcelas para el mapa
         const parsedLocations = (data.parcelas || [])
           .map((parcela: Parcela) => {
-            // Intentar obtener coordenadas
             let lat, lng
 
-            // Si la API proporciona latitud/longitud directamente
             if (parcela.latitud !== undefined && parcela.longitud !== undefined) {
               lat = Number.parseFloat(String(parcela.latitud))
               lng = Number.parseFloat(String(parcela.longitud))
-            } else {
-              // Coordenadas de ejemplo basadas en el ID de la parcela para demostración
-              // En un caso real, estas coordenadas deberían venir de la API
-              const demoCoordinates: Record<number, [number, number]> = {
-                1: [25.6866, -100.3161], // Parcela 1
-                2: [25.6896, -100.3131], // Parcela 2
-                3: [25.6836, -100.3101], // Parcela 3
-                4: [25.6806, -100.3071], // Parcela 4
-                5: [25.6876, -100.3041], // Parcela 5
-              }
-
-              const defaultCoords = demoCoordinates[parcela.id] || [25.6866, -100.3161]
-              lat = defaultCoords[0]
-              lng = defaultCoords[1]
-            }
-
-            if (isNaN(lat) || isNaN(lng)) {
-              console.warn("⚠️ Ubicación inválida detectada:", parcela)
-              return null
             }
 
             return {
@@ -104,7 +82,7 @@ export default function Dashboard() {
               name: parcela.nombre,
               lat,
               lng,
-              parcelaData: parcela, // Incluir todos los datos de la parcela
+              parcelaData: parcela, 
             }
           })
           .filter(Boolean)
@@ -145,8 +123,8 @@ export default function Dashboard() {
             <div className="weather-cards">
               <WeatherCard type="temperature" value={weatherData.temperature} unit="°C" />
               <WeatherCard type="humidity" value={weatherData.humidity} unit="%" />
-              <WeatherCard type="rain" value={weatherData.rain} />
-              <WeatherCard type="sunIntensity" value={weatherData.sunIntensity} />
+              <WeatherCard type="rain" value={weatherData.rain} unit="mm" />
+              <WeatherCard type="sunIntensity" value={weatherData.sunIntensity} unit="%" />
             </div>
           </div>
         </div>

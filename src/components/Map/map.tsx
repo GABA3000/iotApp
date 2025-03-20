@@ -95,7 +95,6 @@ const Map: React.FC<MapProps> = ({ locations }) => {
       markersRef.current = []
 
       validLocations.forEach((location) => {
-        // Crear el contenido HTML para el popup con información detallada
         const popupContent = createPopupContent(location)
 
         const marker = new mapboxgl.Marker({ color: "#B03A2E" })
@@ -115,7 +114,6 @@ const Map: React.FC<MapProps> = ({ locations }) => {
     }
   }, [locations, zoom])
 
-  // Función para crear el contenido HTML del popup
   const createPopupContent = (location: Location): string => {
     const parcelaData = location.parcelaData
 
@@ -126,7 +124,7 @@ const Map: React.FC<MapProps> = ({ locations }) => {
       </div>`
     }
 
-    // Formatear la fecha del último riego
+    
     const formatDate = (dateString: string) => {
       try {
         const date = new Date(dateString)

@@ -1,47 +1,49 @@
 "use client"
 
 import type React from "react"
-
 import { useRef, useEffect, useState } from "react"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 import "./map.css"
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoiYXN0cm9ncjE2IiwiYSI6ImNtODRvaXRxcDEwdGUya29zdm9najY2YzYifQ.sYq3Wt4uufTQM0_CohRR0g"
+
 mapboxgl.accessToken = MAPBOX_TOKEN
 
-interface ParcelaSensor {
-  humedad: number
-  temperatura: number
-  [key: string]: any
-}
-
 interface Parcela {
+
   id: number
   nombre: string
   ubicacion: string
   responsable: string
   tipo_cultivo: string
   ultimo_riego: string
-  sensor: ParcelaSensor
   latitud?: number
   longitud?: number
   [key: string]: any
 }
 
 interface Location {
+
   id: number
   name: string
   lat: number
   lng: number
+  temperatura: number
+  humedad: number
+  lluvia: number
+  sol: number
   parcelaData?: Parcela
 }
 
+
 interface MapProps {
+
   locations: Location[]
 }
 
 const Map: React.FC<MapProps> = ({ locations }) => {
+
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -49,9 +51,10 @@ const Map: React.FC<MapProps> = ({ locations }) => {
   const [mapError, setMapError] = useState<string | null>(null)
 
   useEffect(() => {
+
     if (!mapContainer.current) return
 
-    if (!mapboxgl.accessToken || mapboxgl.accessToken === "tu_token_de_mapbox_aqui") {
+    if (!mapboxgl.accessToken) {
       setMapError("Se requiere un token de acceso válido para Mapbox")
       return
     }
@@ -70,6 +73,7 @@ const Map: React.FC<MapProps> = ({ locations }) => {
     const initialCenter: [number, number] = [validLocations[0].lng, validLocations[0].lat]
 
     try {
+
       if (!map.current) {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
@@ -81,14 +85,13 @@ const Map: React.FC<MapProps> = ({ locations }) => {
         map.current.addControl(new mapboxgl.NavigationControl(), "top-right")
 
         map.current.on("error", (e) => {
+
           console.error("Error en el mapa:", e)
           setMapError(`Error al cargar el mapa: ${e.error?.message || "Error desconocido"}`)
         })
+
       } else {
-        map.current.flyTo({
-          center: initialCenter,
-          zoom: zoom,
-        })
+        map.current.flyTo({ center: initialCenter, zoom: zoom })
       }
 
       markersRef.current.forEach((marker) => marker.remove())
@@ -105,6 +108,7 @@ const Map: React.FC<MapProps> = ({ locations }) => {
         markersRef.current.push(marker)
       })
     } catch (error) {
+
       console.error("Error al inicializar el mapa:", error)
       setMapError(`Error al inicializar el mapa: ${error instanceof Error ? error.message : "Error desconocido"}`)
     }
@@ -115,16 +119,8 @@ const Map: React.FC<MapProps> = ({ locations }) => {
   }, [locations, zoom])
 
   const createPopupContent = (location: Location): string => {
-    const parcelaData = location.parcelaData
+    const parcela = location.parcelaData
 
-    if (!parcelaData) {
-      return `<div class="popup-content">
-        <h3>${location.name}</h3>
-        <p>No hay datos adicionales disponibles</p>
-      </div>`
-    }
-
-    
     const formatDate = (dateString: string) => {
       try {
         const date = new Date(dateString)
@@ -140,24 +136,37 @@ const Map: React.FC<MapProps> = ({ locations }) => {
       }
     }
 
-    const formattedDate = formatDate(parcelaData.ultimo_riego)
+    const formattedDate = parcela?.ultimo_riego ? formatDate(parcela.ultimo_riego) : "Sin información"
 
     return `
       <div class="popup-content">
-        <h3>${parcelaData.nombre}</h3>
+
+        <h3>${parcela?.nombre ?? location.name}</h3>
         <div class="popup-details">
-          <p><strong>Ubicación:</strong> ${parcelaData.ubicacion}</p>
-          <p><strong>Responsable:</strong> ${parcelaData.responsable}</p>
-          <p><strong>Tipo de cultivo:</strong> ${parcelaData.tipo_cultivo}</p>
+          <p><strong>Ubicación:</strong> ${parcela?.ubicacion ?? "No disponible"}</p>
+          <p><strong>Responsable:</strong> ${parcela?.responsable ?? "No disponible"}</p>
+          <p><strong>Tipo de cultivo:</strong> ${parcela?.tipo_cultivo ?? "No disponible"}</p>
           <p><strong>Último riego:</strong> ${formattedDate}</p>
           <div class="popup-sensors">
             <div class="sensor-reading temperature">
-              <span class="sensor-value">${parcelaData.sensor.temperatura}°C</span>
+              <span class="sensor-value">${location.temperatura}°C</span>
               <span class="sensor-label">Temperatura</span>
             </div>
+
             <div class="sensor-reading humidity">
-              <span class="sensor-value">${parcelaData.sensor.humedad}%</span>
+
+              <span class="sensor-value">${location.humedad}%</span>
               <span class="sensor-label">Humedad</span>
+            </div>
+            <div class="sensor-reading lluvia">
+              <span class="sensor-value">${location.lluvia} mm</span>
+              <span class="sensor-label">Lluvia</span>
+            </div>
+
+            <div class="sensor-reading sol">
+
+              <span class="sensor-value">${location.sol}%</span>
+              <span class="sensor-label">Intensidad del Sol</span>
             </div>
           </div>
         </div>
@@ -167,10 +176,12 @@ const Map: React.FC<MapProps> = ({ locations }) => {
 
   return (
     <div className="map-container">
+
       {mapError ? (
         <div className="map-error">
+          
           <p>{mapError}</p>
-          <p className="map-error-help">Verifica tu token de Mapbox en el archivo map.tsx</p>
+          <p className="map-error-help">Verificar token</p>
         </div>
       ) : (
         <div ref={mapContainer} className="map" />
@@ -180,4 +191,3 @@ const Map: React.FC<MapProps> = ({ locations }) => {
 }
 
 export default Map
-

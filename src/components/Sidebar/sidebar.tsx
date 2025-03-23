@@ -1,46 +1,66 @@
-import type React from "react"
+import { Link, useLocation } from "react-router-dom"
 import "./sidebar.css"
 
-const Sidebar: React.FC = () => {
+export default function Sidebar() {
+
+
+  const location = useLocation()
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
+
+    <div className="sidebar">
+
+  <div className="sidebar-header">
         <div className="logo-container">
           <div className="logo-icon"></div>
-          <h1 className="logo-text">Dashboard</h1>
+          <h1 className="logo-text">IoT Parcelas</h1>
         </div>
       </div>
-      <nav className="sidebar-nav">
-        <ul className="nav-list">
-          <li className="nav-item active">
-            <a href="#" className="nav-link">
-              <span className="nav-icon dashboard-icon"></span>
-              <span className="nav-text">Dashboard</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a href="#" className="nav-link">
-              <span className="nav-icon map-icon"></span>
-              <span className="nav-text">Mapas</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a href="#" className="nav-link">
-              <span className="nav-icon chart-icon"></span>
-              <span className="nav-text">Estadísticas</span>
-            </a>
-          </li>
-          <li className="nav-item">
-            <a href="#" className="nav-link">
-              <span className="nav-icon settings-icon"></span>
-              <span className="nav-text">Configuración</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+      <ul className="nav-list">
+
+        <li className="nav-item">
+
+          <Link to="/" className={`nav-link ${location.pathname === "/" ? "active" : ""}`}>
+
+            <span className="nav-icon dashboard-icon"></span>
+            <span className="nav-text">Dashboard</span>
+          </Link>
+        </li>
+
+        <li className="nav-item">
+
+
+          <Link to="/mapas" className={`nav-link ${location.pathname === "/mapas" ? "active" : ""}`}>
+            <span className="nav-icon map-icon"></span>
+
+            <span className="nav-text">Mapas</span>
+
+          </Link>
+        </li>
+        <li className="nav-item">
+          <Link to="/estadisticas" className={`nav-link ${location.pathname === "/estadisticas" ? "active" : ""}`}>
+            <span className="nav-icon chart-icon"></span>
+
+            <span className="nav-text">Estadísticas</span>
+          </Link>
+        </li>
+        <li className="nav-item">
+          <Link to="/configuracion" className={`nav-link ${location.pathname === "/configuracion" ? "active" : ""}`}>
+
+            <span className="nav-icon settings-icon"></span>
+
+
+            <span className="nav-text">Configuración</span>
+
+          </Link>
+
+
+        </li>
+
+
+      </ul>
+
+
+    </div>
   )
 }
-
-export default Sidebar
-
